@@ -11,7 +11,16 @@ namespace Tweener
     {
         public Bezier(BezierWay way, Transform _transform, float _timeOrSpeed, bool _isSpeed) : base(_transform, _timeOrSpeed)
         {
-            Way = way;
+            Way = GameObject.Instantiate(way);
+            Way.transform.SetParent(Tween.instance.transform);
+            Way.name = way.name + " (Clone for " + NameOperation + ")";
+#if UNITY_EDITOR
+#pragma warning disable 0618
+            Way.Parent = way;
+            Way.Visible = false;
+            foreach(BezierPoint bezier in Way)
+                bezier.Visible = false;
+#endif
             isSpeed = _isSpeed;
             eventRestart += RestartWay;
         }
@@ -54,8 +63,9 @@ namespace Tweener
             for (int i = 1; i < CurrentLine; i++)
                 progressPrevious += Way.GetSegmentPercentage(i);
             ProgressLine = (ProgressWay - progressPrevious) / Way.GetSegmentPercentage(CurrentLine);
-            transform.position = GetPoint(Way[CurrentLine - 1].Point, Way[CurrentLine - 1].Exit, Way[CurrentLine].Entrance, Way[CurrentLine].Point, ProgressLine);
-            transform.rotation = Quaternion.LookRotation(GetDirection(Way[CurrentLine - 1].Point, Way[CurrentLine - 1].Exit, Way[CurrentLine].Entrance, Way[CurrentLine].Point, ProgressLine));
+            Vector3 position = GetPoint(Way[CurrentLine - 1].Point, Way[CurrentLine - 1].Exit, Way[CurrentLine].Enter, Way[CurrentLine].Point, ProgressLine);
+            Quaternion quaternion = Quaternion.LookRotation(GetDirection(Way[CurrentLine - 1].Point, Way[CurrentLine - 1].Exit, Way[CurrentLine].Enter, Way[CurrentLine].Point, ProgressLine));
+            transform.SetPositionAndRotation(position, quaternion);
         }
         protected override void OnUpdate(float percentage)
         {

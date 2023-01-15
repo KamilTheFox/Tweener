@@ -1,15 +1,14 @@
 ﻿namespace Tweener
 {
-    public enum Ease : byte
+    public enum Ease : sbyte
     {
-        None,
-        CubicRoot,
+        CubicRoot = -2,
         SquareRoot,
+        Linear,
         SquareDegree,
         CubicDegree,
         FourthDegree,
         FiveDegree,
         InJumps,
-        Linear,
     }
 }

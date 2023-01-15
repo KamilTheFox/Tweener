@@ -8,7 +8,7 @@ namespace Tweener
 {
     public class Tween : MonoBehaviour
     {
-        private static Tween instance;
+        internal static Tween instance;
         private static bool Launched;
 
         private void Awake()

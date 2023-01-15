@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using Tweener;
 using UnityEditor;
+
 namespace Assets.Editors
 {
     [CustomEditor(typeof(BezierWay)), CanEditMultipleObjects]
     public class BezierWayEditor : Editor
     {
         public BezierWay BezierWay;
-        public bool ViewList;
+        public static bool ViewList;
 
         [MenuItem("Tweener/Create Bezier Way")]
         public static void CreateBezierWay()
@@ -20,6 +21,10 @@ namespace Assets.Editors
         {
             BezierWay = (BezierWay)target;
         }
+        private void SetSellectPoint(GameObject obj)
+        {
+            Selection.activeGameObject = obj;
+        }
         public override void OnInspectorGUI()
         {
             EditorGUI.BeginChangeCheck();
@@ -29,9 +34,15 @@ namespace Assets.Editors
             GUILayout.Label($"Point {BezierWay.Count}: ");
             if (GUILayout.Button("Add"))
             {
-                BezierPoint bezier = new BezierPoint(Vector3.zero, Vector3.up);
-                BezierWay.pointsBezier.Add(bezier);
+                BezierPoint bezier = new BezierPoint();
+#pragma warning disable 0618
+                bezier._Point = new GameObject("Point").transform;
+                bezier._Point.position = Vector3.zero;
                 bezier._Point.SetParent(BezierWay.transform);
+                bezier._Enter = new GameObject("Enter").transform;
+                bezier._Enter.localPosition = Vector3.up;
+                bezier._Point.SetParent(bezier._Point);
+                BezierWay.pointsBezier.Add(bezier);
             }
             if (GUILayout.Button("Remove"))
             {
@@ -40,6 +51,7 @@ namespace Assets.Editors
                 BezierWay.pointsBezier.RemoveAt(index);
             }
             GUILayout.EndHorizontal();
+            GUILayout.Label($"Distance: {BezierWay.DistanceWay}");
             BezierWay.Visible = EditorGUILayout.Toggle("Draw Bezier?", BezierWay.Visible);
             ViewList = EditorGUILayout.Toggle("List Point", ViewList);
             if (BezierWay.Count > 0 && ViewList)
@@ -50,11 +62,21 @@ namespace Assets.Editors
                     GUILayout.Label(point.ToString());
                     if (GUILayout.Button("Point"))
                     {
-                        Selection.activeGameObject = point._Point.gameObject;
+                        SetSellectPoint(point._Point.gameObject);
                     }
                     if (GUILayout.Button("Enter"))
                     {
-                        Selection.activeGameObject = point._Entrance.gameObject;
+                        point.ControllerForEnter = true;
+                        SetSellectPoint(point._Enter.gameObject);
+                    }
+                    if (GUILayout.Button("Exit"))
+                    {
+                        point.ControllerForEnter = false;
+                        SetSellectPoint(point._Enter.gameObject);
+                    }
+                    if (GUILayout.Button("View"))
+                    {
+                        point.Visible = !point.Visible;
                     }
                     GUILayout.EndHorizontal();
                 }

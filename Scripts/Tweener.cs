@@ -46,14 +46,6 @@ namespace Tweener
         protected event Action eventRestart;
         protected event Action eventStop;
         protected event Action EventDestroyObject;
-
-        private static readonly Dictionary<Ease, Ease> EaseReverse = new()
-        {
-            [Ease.CubicRoot] = Ease.CubicDegree,
-            [Ease.CubicDegree] = Ease.CubicRoot,
-            [Ease.SquareRoot] = Ease.SquareDegree,
-            [Ease.SquareDegree] = Ease.SquareRoot,
-        };
         private float GetTimeSkale
         {
             get
@@ -183,8 +175,7 @@ namespace Tweener
         {
             Restart();
             ReverseProgress();
-            if (EaseReverse.TryGetValue(typeEase, out Ease ease))
-                typeEase = ease;
+            typeEase = (Ease)(-(sbyte)typeEase);
             ChangeEase(typeEase);
         }
         public IExpansionTween ChangeLoop(TypeLoop loop)

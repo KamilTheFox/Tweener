@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-
+#pragma warning disable 0618
 namespace Tweener
 {
     public class BezierWay : MonoBehaviour, IEnumerable
@@ -63,7 +63,7 @@ namespace Tweener
                 float paremeter = (float)i / sigmentsNumber;
                 Vector3 point = Bezier.GetPoint(
                     this[indexSegmentWay - 1].Point, this[indexSegmentWay - 1].Exit,
-                    this[indexSegmentWay].Entrance, this[indexSegmentWay].Point,
+                    this[indexSegmentWay].Enter, this[indexSegmentWay].Point,
                     paremeter);
                 Distance += Vector3.Distance(point, preveousePoint);
                 preveousePoint = point;
@@ -72,14 +72,38 @@ namespace Tweener
         }
         public void ReverseWay()
         {
-            foreach (BezierPoint point in pointsBezier)
+#if UNITY_EDITOR
+            isReverse = !isReverse;
+#else
+               pointsBezier.Reverse();
+               foreach (BezierPoint point in pointsBezier)
                 point.ReverseEntranceExit();
-            pointsBezier.Reverse();
+#endif
+        }
+        public IEnumerator GetEnumerator()
+        {
+            return pointsBezier.GetEnumerator();
         }
 #if UNITY_EDITOR
+        private bool isReverse;
+        [Obsolete("For EditorController. #if UNITY_EDITOR")]
+        public BezierWay Parent;
         public bool Visible = true;
         private void OnDrawGizmos()
         {
+            if (Parent != null)
+            {
+                for (int i = 0; i < Parent.pointsBezier.Count; i++)
+                {
+                    pointsBezier[i]._Point.position = Parent.pointsBezier[isReverse ? Parent.pointsBezier.Count - 1 - i : i].Point;
+                    BezierPoint bezier = Parent.pointsBezier[isReverse ? Parent.pointsBezier.Count - 1 - i : i];
+                    pointsBezier[i]._Enter.localPosition = isReverse ? bezier.ControllerForEnter? bezier.ExitLocal: bezier.EnterLocal : bezier.ControllerForEnter ? bezier.EnterLocal : bezier.ExitLocal;
+                }
+            }
+            foreach (BezierPoint bezier in this)
+            {
+                bezier.OnGizmos();
+            }
             if (Count < 1)
                 return;
             if (Visible)
@@ -89,13 +113,13 @@ namespace Tweener
             for (int lines = 1; lines < Count; lines++)
             {
                 preveousePoint = this[lines - 1].Point;
+                if (Visible)
                 for (int i = 0; i < sigmentsNumber + 1; i++)
                 {
                     float paremeter = (float)i / sigmentsNumber;
-                    Vector3 point = Bezier.GetPoint(this[lines - 1].Point, this[lines - 1].Exit, this[lines].Entrance, this[lines].Point, paremeter);
+                    Vector3 point = Bezier.GetPoint(this[lines - 1].Point, this[lines - 1].Exit, this[lines].Enter, this[lines].Point, paremeter);
                     Gizmos.color = Color.white;
-                    if (Visible)
-                        Gizmos.DrawLine(preveousePoint, point);
+                    Gizmos.DrawLine(preveousePoint, point);
                     preveousePoint = point;
                 }
                 if (!Visible) continue;
@@ -117,11 +141,6 @@ namespace Tweener
             Vector2 size = GUI.skin.label.CalcSize(new GUIContent(text));
             GUI.Label(new Rect(screenPos.x - (size.x), view.position.height - (screenPos.y + 1F), size.x, size.y), text);
             UnityEditor.Handles.EndGUI();
-        }
-
-        public IEnumerator GetEnumerator()
-        {
-            return pointsBezier.GetEnumerator();
         }
 #endif
     }
