@@ -82,6 +82,8 @@ namespace Tweener
         }
         public IEnumerator GetEnumerator()
         {
+            if (pointsBezier == null)
+                pointsBezier = new();
             return pointsBezier.GetEnumerator();
         }
 #if UNITY_EDITOR

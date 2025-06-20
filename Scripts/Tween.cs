@@ -9,7 +9,6 @@ namespace Tweener
     public class Tween : MonoBehaviour
     {
         internal static Tween instance;
-        private static bool Launched;
 
         private void Awake()
         {
@@ -44,17 +43,16 @@ namespace Tweener
                         Tweener.BetweenObjects.Remove(key);
                 });
             }
-            Launched = false;
             yield break;
         }
         #region Color
-        public static IExpansionColor SetColor(Transform transform, Color newColor, float time = 1F)
+        public static IExpansionColor SetColor(Transform transform, Color newColor, float time = 1F, TypeComponentChangeColor changeColor = TypeComponentChangeColor.Material)
         {
-            return new SetColor(transform, newColor, time);
+            return new SetColor(transform, newColor, time, changeColor);
         }
-        public static IExpansionColor AddColor(Transform transform, Color newColor, float time = 1F)
+        public static IExpansionColor AddColor(Transform transform, Color newColor, float time = 1F, TypeComponentChangeColor changeColor = TypeComponentChangeColor.Material)
         {
-            return new AddColor(transform, newColor, time);
+            return new AddColor(transform, newColor, time, changeColor);
         }
         #endregion 
         #region Vector3
@@ -82,24 +80,69 @@ namespace Tweener
         {
             return new Position(Object, position, time, true);
         }
-
+        public static IExpansionTween SetPositionLocal(Transform Object, Vector3 position, float time = 1F)
+        {
+            return new PositionLocal(Object, position, time, false);
+        }
+        public static IExpansionTween AddPositionLocal(Transform Object, Vector3 position, float time = 1F)
+        {
+            return new PositionLocal(Object, position, time, true);
+        }
         #endregion 
         #region Bezier
 
         public static IExpansionBezier GoWay(Transform transform,BezierWay way, float timeOrSpeed, bool isSpeed = false)
         {
+            if (way == null)
+            {
+                Debug.LogWarning("Path not assigned"); 
+                return null;
+            }
             return new Bezier(way, transform , timeOrSpeed, isSpeed);
         }
 
         #endregion 
-        public static IExpansionTween StartTween(IExpansionTween tween)
+
+        private static IExpansionTween ConvertTween(IExpansionTween tween, Action<Tweener> action)
         {
             Tweener tweener = tween as Tweener;
             if (tweener.transform == null) return null;
-            tweener.Restart();
-            Tweener.BetweenObjects.Add(tweener.NameOperator,tweener);
+            action.Invoke(tweener);
             Launch();
             return tween;
+        }
+
+        public static IExpansionTween Pause(IExpansionTween tween)
+        {
+            return ConvertTween(tween, (tweener) =>
+            {
+                Tweener.BetweenObjects.Remove(tweener.NameOperator);
+            });
+        }
+        public static IExpansionTween UnPause(IExpansionTween tween)
+        {
+            return ConvertTween(tween, (tweener) =>
+            {
+                if (!Tweener.BetweenObjects.ContainsKey(tweener.NameOperator))
+                    Tweener.BetweenObjects.Add(tweener.NameOperator, tweener);
+            });
+        }
+        public static IExpansionTween Stop(IExpansionTween tween)
+        {
+            return ConvertTween(tween, (tweener) =>
+                {
+                    tweener.Restart();
+                    Tweener.BetweenObjects.Remove(tweener.NameOperator);
+                });
+        }
+        public static IExpansionTween Start(IExpansionTween tween)
+        {
+            return ConvertTween(tween, (tweener) =>
+            {
+                tweener.Restart();
+                if (!Tweener.BetweenObjects.ContainsKey(tweener.NameOperator))
+                    Tweener.BetweenObjects.Add(tweener.NameOperator, tweener);
+            });
         }
         internal static void Launch()
         {
@@ -107,9 +150,8 @@ namespace Tweener
             {
                 new GameObject("Tweener", typeof(Tween));
             }
-            if (Launched) return;
+            instance.StopAllCoroutines();
             instance.StartCoroutine(instance.MainProcess());
-            Launched = true;
         }
     }
 }

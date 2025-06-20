@@ -41,7 +41,7 @@ namespace Assets.Editors
                 bezier._Point.SetParent(BezierWay.transform);
                 bezier._Enter = new GameObject("Enter").transform;
                 bezier._Enter.localPosition = Vector3.up;
-                bezier._Point.SetParent(bezier._Point);
+                bezier._Enter.SetParent(bezier._Point);
                 BezierWay.pointsBezier.Add(bezier);
             }
             if (GUILayout.Button("Remove"))

@@ -1,6 +1,4 @@
 ﻿
-using System;
-
 namespace Tweener
 {
     internal interface ITweenable

@@ -1,5 +1,4 @@
 ﻿using System;
-using UnityEngine;
 
 namespace Tweener
 {
@@ -39,17 +38,7 @@ namespace Tweener
 
         IExpansionTween ChangeLoop(TypeLoop loop);
     }
-    public interface IExpansionColor : IExpansionTween<IExpansionColor>
-    {
-        IExpansionColor TypeOfColorChange(TypeChangeColor type);
-        IExpansionColor IgnoreAdd(IgnoreARGB ARGB);
-    }
-    public interface IExpansionBezier : IExpansionTween<IExpansionBezier>
-    {
-        Vector3 CurrentPosition { get; }
-        Vector3 CurrentRotation { get; }
-
-
-    }
+   
+    
 }
 
